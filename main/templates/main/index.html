@@ -1,0 +1,536 @@
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iloveu</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.0.7/css/boxicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha384-..." crossorigin="anonymous">
+  <link rel="stylesheet" href="{% static 'main/css/main.css'%}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/typicons/2.0.9/typicons.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/gsap@3.9.0/dist/gsap.min.js"></script>
+    <script src="https://docs.opencv.org/4.5.5/opencv.js" async></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/kmeans-js/1.1.0/kmeans.min.js"></script>
+</head>
+<body>
+
+<!-- Header Section
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<header id="header">
+  <div class="main_nav">
+    <div class="container">
+      <div class="mobile-toggle"> </div>
+      <nav>
+        <ul>
+          <li><a class="smoothscroll" href="#header">Шапка</a></li>
+          <li><a class="smoothscroll" href="#about">Генерация</a></li>
+          <li><a class="smoothscroll" href="#model">Предсказание</a></li>
+<!--          <li><a class="smoothscroll" href="#class">3 этаж</a></li>-->
+        </ul>
+      </nav>
+    </div>
+  </div>
+  <div class="title">
+    <div><span class="typcn typcn-media-stop-outline icon heading"></span></div>
+    <div class="smallsep heading"></div>
+    <h1 class="heading"> like Malevich</h1>
+    <h2 class="heading">сайт для помощи художникам</h2>
+  </div>
+  <a class="smoothscroll" href="#about">
+    <div class="scroll-down"></div>
+  </a>
+</header>
+
+<!-- Image Generation Section -->
+<!--<section id="class">-->
+<!--  <div class="container_words">-->
+<!--        <div class="quoteLoop">-->
+<!--        &lt;!&ndash; Кнопка для генерации случайных элементов &ndash;&gt;-->
+
+
+<!--    <div style="margin-right: 35px;" id="itemsContainer"></div>-->
+
+<!--    &lt;!&ndash; Display random items &ndash;&gt;-->
+<!--    {% if random_items %}-->
+<!--        <h2></h2>-->
+<!--        <ul>-->
+<!--            {% for item in random_items %}-->
+<!--                <li style="list-style-type: none; margin-left: -50px; ">{{ item }}</li>-->
+<!--            {% endfor %}-->
+<!--        </ul>-->
+<!--    {% endif %}-->
+      </blockquote>
+    </div>
+  </div>
+</section>
+<!-- Image Generation Section -->
+<section id="about">
+    <div class="container">
+        <div>
+             <b><label style="font-size: 24px; margin: auto 10px; pa" for="textInput">Введите текст запроса:</label><b>
+            <textarea type="text" id="textInput" name="textInput" rows="5" style="width: 100%; border-radius: 20px; padding: 15px; resize:none;"></textarea>
+            <button style="width: 100%; font-size: 18px" id="getImageButton">Сгенерировать изображение</button>
+            <form method="post">
+                <button type="button" style="width: 100%; font-size: 18px" id="generateButton"> Подсказка (добавляет 3 слова для генерации необычного рисунка) </button>
+                <button style="width: 100%; font-size: 18px" id="addGridButton">Добавить сетку для построения</button>
+            </form>
+            <button style="width: 100%; margin-top: -5px; font-size: 18px" id="generatePaletteButton">Выделить основные цвета</button>
+            <button style="width: 100%; font-size: 18px " id="blurButton">Создать контрастную чб версию</button>
+            <button style="width: 100%;  margin-bottom: 5px; font-size: 18px" id="ConButton">Выделить контуры</button>
+                        <!-- Добавляем ползунки для настройки контуров -->
+                <label style="font-size: 18px; margin-left: 5px;" for="contourThreshold" id="contourThresholdLabel">Количество контуров:</label>
+                <input type="range" min="1" max="100" value="1" class="slider" id="contourThreshold" style="width: 100%; color: pink">
+            <a id="loading" style="display: none; font-size: 18px ">Загрузка...</a>
+        </div>
+        <div style="justify-content: center; display: flex; margin-top: 20px;" id="paletteContainer"></div>
+        <!-- Отображение сгенерированного изображения -->
+        <div id="resultContainer" style="display: flex; justify-content: center; margin-top: 40px;filter: drop-shadow(2px 4px 6px black);"></div>
+        <canvas id="gridCanvas" style="justify-content: center; display: flex; margin: 0px auto; position: relative;"></canvas>
+        <canvas id="resultCanvas" width="450" height="450" style="display: block; margin: 40px auto; border-radius: 20px; filter: drop-shadow(2px 4px 6px black);"></canvas>
+    </div>
+</section>
+
+<!-- model Section -->
+<section id="model">
+  <div content="model"></div>
+  <div class="container" >
+    <div class="row">
+      <h1>Модель</h1>
+      <div class="block"></div>
+      <p>Этот проект не только предоставит эффективный
+        инструмент для художников, дизайнеров и исследователей
+        искусства, но также может быть востребован в индустрии
+        компьютерного зрения и медиа для автоматизированной обработки
+        и анализа изображений.</p>
+      <div class='body_model'>
+        <!-- Upload Area -->
+        <div id="uploadArea" class="upload-area">
+          <!-- Header -->
+          <div class="upload-area__header">
+            <h1 class="upload-area__title">Загрузите свой файл</h1>
+            <p class="upload-area__paragraph">
+              Файл должен представлять собой
+              <strong class="upload-area__tooltip">
+                изображение
+                <span class="upload-area__tooltip-data"></span> <!-- Data Will be Comes From Js -->
+              </strong>
+            </p>
+          </div>
+          <!-- End Header -->
+          <!-- Drop Zoon -->
+<form method="post" enctype="multipart/form-data" id="classify_image">
+  {% csrf_token %}
+  <label for="id_image" id="dropZoon" class="upload-area__drop-zoon drop-zoon">
+    <span class="drop-zoon__icon">
+      <i class='bx bxs-file-image'></i>
+    </span>
+      <p class="drop-zoon__paragraph">Добавьте сюда свой файл или нажмите</p>
+      <span id="loadingText" class="drop-zoon__loading-text">Пожалуйста, подождите</span>
+        <!-- Загрузочный индикатор -->
+    <div id="loader"></div>
+
+      <img src="" alt="Preview Image" id="previewImage" class="drop-zoon__preview-image" draggable="false">
+    <div>
+      <input type="file" name="image" class="drop-zoon__file-input" accept="image/*" required id="id_image">
+    </div>
+  </label>
+<!-- End Drop Zoon -->
+<!-- File Details -->
+<div id="fileDetails" class="upload-area__file-details file-details">
+
+  <div id="uploadedFile" class="uploaded-file">
+    <div class="uploaded-file__icon-container">
+      <i class='bx bxs-file-blank uploaded-file__icon'></i>
+      <span class="uploaded-file__icon-text"></span> <!-- Data Will be Comes From Js -->
+    </div>
+
+    <div id="uploadedFileInfo" class="uploaded-file__info">
+      <span class="uploaded-file__name">Proejct 1</span>
+      <span class="uploaded-file__counter">0%</span>
+    </div>
+  </div>
+</div>
+  <button type="submit" id="uploadButton" class="upload-button" onclick="pushButton()">Предсказать</button>
+</form>
+<!-- Form and button -->
+<div id="team-anchor">
+    {% if class_result %}
+        <h1 style="font-weight: 600; font-size: 18px;">{{ class_result }}</h1>
+    {% endif %}
+    {% if palette %}
+        <h1 style="font-weight: 600; font-size: 18px;">Палитра изображения:</h1>
+        <div style="display:flex;">
+            {% for color in palette %}
+                <div style="background-color:rgb({{ color.0 }}, {{ color.1 }}, {{ color.2 }}); width:50px; height:50px;"></div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+      </div>
+    </div>
+  </div>
+</div>
+  <!-- End File Details -->
+</div>
+<!-- End Upload Area -->
+</section>
+<!-- class Section -->
+
+
+
+<!-- End Image Generation Section -->
+<!--{% if generated_image %}-->
+<!--    <h2>Сгенерированное изображение:</h2>-->
+<!--    <img src="{{ generated_image.url }}" alt="Сгенерированное изображение">-->
+<!--{% endif %}-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Академизм.jpg" width=290" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Академизм<br>-->
+<!--          <small>Данте и Вергилий в аду</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Барокко.jpg" width="430" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Барокко<br>-->
+<!--          <small>Ночной Дозор</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--           <blockquote class="quote"> <img src="/static/main/media/Кубизм.jpg" width="250" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Кубизм<br>-->
+<!--          <small>Скрипка</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--           <blockquote class="quote"> <img src="/static/main/media/Экспрессионизм.jpg" width="280" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Экспрессионизм<br>-->
+<!--          <small>Крик</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Японское_искусство.jpg" width="460" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Японское искусство<br>-->
+<!--          <small>Большая волна в Канагаве</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Неоклассицизм.jpg" width="220" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Неоклассицизм<br>-->
+<!--          <small>Наполеон Бонапарт в рабочем кабинете в Тюильри</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Поп-арт.jpg" width="370" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Поп-арт<br>-->
+<!--          <small>Бирюзовая Мэрилин Монро</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Примитивизм.jpg" width="300" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Примитивизм<br>-->
+<!--          <small>Автопортрет с обезьяной и попугаем</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Реализм.jpg" width="410" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Реализм<br>-->
+<!--          <small>Сборщицы Колосьев</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Ренессанс.jpg" width="250" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Ренессанс<br>-->
+<!--          <small>Мона Лиза</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Рококо.jpg" width="300" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Рококо<br>-->
+<!--          <small>Портрет Марии-Антуанетты с Розой</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Романтизм.jpg" width="270" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Романтизм<br>-->
+<!--          <small>Странник над Морем Тумана</small>-->
+<!--        </h5>-->
+<!--        </blockquote>-->
+<!--      <blockquote class="quote"> <img src="/static/main/media/Символизм.jpg" width="400" height="350" alt="" />-->
+<!--        <h5>&nbsp;<br>Символизм<br>-->
+<!--          <small>Поцелуй</small>-->
+<!--        </h5>-->
+<!--      </blockquote>-->
+<!--    </div>-->
+  </div>
+<!--</section>-->
+<!-- Footer Section
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<footer>
+  <div class="container">
+    <div class="nine columns">
+      <p>Created with love by SG.</p>
+    </div>
+    <div class="three columns"> <span class="typcn typcn-social-github-circular socialIcons"></span>
+    </div>
+  </div>
+</footer>
+<script src="/static/main/js/main.js"></script>
+</body>
+</html>
+<script>
+async function query(data) {
+    const response = await fetch(
+        "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+        {
+            headers: { Authorization: "Bearer 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" },
+            method: "POST",
+            body: JSON.stringify(data),
+        }
+    );
+    const result = await response.blob();
+    return result;
+}
+
+function displayImage() {
+    var q = $('#textInput').val();
+    var res = $('#resultContainer');
+
+    $('#loading').show();
+
+    query({"inputs": q}).then(function(response) {
+        var imageUrl = response;
+
+        // Create image element and add it to the page
+        var imgElement = document.createElement('img');
+        imgElement.setAttribute('src', URL.createObjectURL(imageUrl));
+        $('#loading').hide();
+        imgElement.style.width = "450px";
+        imgElement.style.borderRadius = "20px";
+        imgElement.setAttribute('id', 'generatedImg');
+
+        var res = document.getElementById('resultContainer');
+        res.innerHTML = '';
+        res.appendChild(imgElement);
+        addPalette();
+    });
+}
+
+
+$('#ConButton').click(function() {
+    ConImg();
+});
+
+function ConImg(count = 60) {
+console.log('puk:' + count);
+    var img = document.getElementById('generatedImg');
+    var src = cv.imread(img); // Read image from img tag
+    var gray = new cv.Mat();
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0); // Convert to grayscale
+    cv.blur(gray, gray, new cv.Size(3, 3)); // Blur to reduce noise
+    var edges = new cv.Mat();
+    cv.Canny(gray, edges, 1, count, 3, false); // Apply Canny edge detection
+    var contours = new cv.MatVector();
+    var hierarchy = new cv.Mat();
+    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE); // Find contours
+
+    // Create a blank image with white background
+    var contourImage = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
+    contourImage.setTo(new cv.Scalar(255, 255, 255)); // Fill image with white color
+
+    // Draw contours on blank image
+    for (var i = 0; i < contours.size(); ++i) {
+        cv.drawContours(contourImage, contours, i, new cv.Scalar(0, 0, 0, 255), 1, cv.LINE_8, hierarchy, 140);
+    }
+
+    // Display result on canvas
+    cv.imshow('resultCanvas', contourImage);
+
+    // Release resources
+    gray.delete(); edges.delete(); contours.delete(); hierarchy.delete(); contourImage.delete();
+}
+
+function blurImg() {
+    var img = $('#generatedImg');
+    document.getElementById("generatedImg").style.filter = "grayscale(100%) invert(0%) contrast(200%) blur(1px)";
+}
+
+// Event listener for clicking the "Get Image" button
+$('#getImageButton').click(function() {
+    displayImage();
+});
+
+// Event listener for clicking the "Blur" button
+$('#blurButton').click(function() {
+    blurImg();
+});
+
+// Event listener for clicking the "Generate" button
+$(document).ready(function(){
+    $("#generateButton").click(function(){
+        var itemsList = [
+                    "apple", "cat", "George Washington", "rainbow", "pizza", "Mars", "coffee", "elephant", "football", "piano",
+                    "star", "Vincenzo Gemito", "butterfly", "guitar", "Shakespeare", "wolf", "waterfall", "magnolia", "basketball",
+                    "bird", "bear", "Sherlock Holmes", "banana", "starfish", "cosmos", "bear", "Mona Lisa", "painting",
+                    "turtle", "book", "Font of Time", "sand", "lightning", "lion", "Picasso", "vodka", "dolphin", "computer",
+                    "stone", "dragon", "oil", "cabbage", "mountain", "moon", "bee", "jazz", "eagle", "honey", "cardboard",
+                    "phoenix", "clock", "sun", "lemon", "bar", "music", "cosmonaut", "orchid", "ship", "owl", "sound",
+                    "dream", "fountain", "crocodile", "snow", "stargazer", "bank", "ink", "beauty", "penguin", "Martina Navratilova",
+                    "camera", "potato", "George Orwell", "snail", "comet", "mouse", "machine", "ballet", "chocolate", "cat",
+                    "laughter", "parrot", "fire", "flower", "house", "Vladimir Nabokov", "planet", "piano", "Mercury", "fox",
+                    "drops", "fern", "doll", "magic", "bread", "gravity", "phone", "cookies", "Galileo Galilei",
+                    "wave", "Alexander Solzhenitsyn", "horse", "flamingo", "water", "snowman", "nut", "fantasy", "sky", "joy", "mandarin", "James Dean", "ladder", "snake", "orangutan", "lantern", "kettle",
+                    "ice cream", "rose", "paper", "Stefan Zweig", "film", "ant", "word", "lemonade", "bridge", "Milton Erickson",
+                    "spice", "parachute", "sea", "tea", "whale", "harmony", "dog", "drawing", "tree", "book",
+                    "mirror", "dove", "detective", "John Lennon", "sand", "fox", "Milton Friedman", "galaxy", "hill",
+                    "steam locomotive", "palm tree", "sailboat", "car", "rose", "money", "cello", "fruit", "air", "guitar",
+                    "elephant", "chocolate", "bird", "football", "orchid", "dragon", "coffee", "pizza", "cappuccino", "bee",
+                    "joy", "cow", "paint", "jazz", "city", "giraffe", "rain", "cinema", "grandma", "sunshine",
+                    "paper", "mushroom", "champion", "milk", "painting", "spaceship", "prince", "money", "queen", "raincoat",
+                    "chair", "sound", "bird", "mushroom", "stone", "pigeon", "king", "pear", "computer", "lily", "university", "pearl", "friendship", "jeep", "smartphone", "cocktail", "tulip", "perfection", "starfall",
+                    "carnation", "doggie", "robot", "beauty", "hockey", "planet", "T-shirt", "second", "word", "bus",
+                    "canoe", "pillow", "keyboard", "smartphone", "kettle", "TV", "orange", "helicopter", "tractor", "spider",
+                    "card", "pizza", "candy", "pie", "schoolboy", "mom", "dad", "pool", "candy"
+                ];
+        var randomItems = [];
+        for (var i = 0; i < 3; i++) {
+            var randomIndex = Math.floor(Math.random() * itemsList.length);
+            randomItems.push(itemsList[randomIndex]);
+        }
+        var itemsText = randomItems.join('\n');
+        $("#textInput").val(itemsText);
+    });
+});
+
+function addPalette() {
+    var img = document.getElementById('generatedImg');
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    context.drawImage(img, 0, 0, img.width, img.height);
+    var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imageData.data;
+
+    var pixelCount = canvas.width * canvas.height;
+    var colorCount = 5; // Number of colors in the palette
+    var pixelArray = [];
+    var colorMap = {};
+
+    // Count occurrence of each color
+    for (var i = 0; i < pixelCount; i++) {
+        var offset = i * 4;
+        var color = [data[offset], data[offset + 1], data[offset + 2]];
+        pixelArray.push(color.join());
+        if (!colorMap[color]) {
+            colorMap[color] = 0;
+        }
+        colorMap[color]++;
+    }
+
+    // Sort colors by occurrence
+    var sortedColors = Object.keys(colorMap).sort(function(a, b) {
+        return colorMap[b] - colorMap[a];
+    });
+
+    // Get the top N colors
+    var palette = [];
+    for (var j = 0; j < sortedColors.length && palette.length < colorCount; j++) {
+        var color = sortedColors[j].split(',').map(function(item) {
+            return parseInt(item);
+        });
+
+        // Check if the color is diverse enough from existing ones
+        var isDiverse = true;
+        for (var k = 0; k < palette.length; k++) {
+            if (getColorDistance(color, palette[k]) < 100) { // Adjust the threshold as needed
+                isDiverse = false;
+                break;
+            }
+        }
+        if (isDiverse) {
+            palette.push(color);
+        }
+    }
+
+    // Display the palette on the page
+    var paletteContainer = document.getElementById('paletteContainer');
+    paletteContainer.innerHTML = '';
+    for (var l = 0; l < palette.length; l++) {
+        var colorDiv = document.createElement('div');
+        colorDiv.style.backgroundColor = 'rgb(' + palette[l].join(',') + ')';
+        colorDiv.style.width = '50px';
+        colorDiv.style.height = '50px';
+        colorDiv.style.marginRight = '5px';
+        colorDiv.style.borderRadius = '10px';
+        paletteContainer.appendChild(colorDiv);
+    }
+}
+
+// Function to calculate distance between two colors
+function getColorDistance(color1, color2) {
+    var rDiff = color1[0] - color2[0];
+    var gDiff = color1[1] - color2[1];
+    var bDiff = color1[2] - color2[2];
+    return Math.sqrt(rDiff * rDiff + gDiff * gDiff + bDiff * bDiff);
+}
+
+$('#generatePaletteButton').click(function() {
+    addPalette();
+});
+
+// Function to add a grid on top of the image
+function addGrid() {
+    var img = document.getElementById('generatedImg');
+    var container = document.getElementById('resultContainer');
+    var canvas = document.getElementById('gridCanvas');
+    var ctx = canvas.getContext('2d');
+
+    // Set canvas size to match the image size
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    // Set canvas position to match the image position
+    canvas.style.position = 'absolute';
+    canvas.style.top = img.offsetTop + 'px';
+    canvas.style.left = img.offsetLeft + 'px';
+
+    // Clear previous drawings
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Define grid properties
+    var gridSize = 20; // Adjust as needed
+    var lineColor = 'rgba(255, 0, 0, 0.5)'; // Adjust as needed
+
+    // Draw vertical lines
+    for (var x = gridSize / 2; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.strokeStyle = lineColor;
+        ctx.stroke();
+    }
+
+    // Draw horizontal lines
+    for (var y = gridSize / 2; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.strokeStyle = lineColor;
+        ctx.stroke();
+    }
+
+    // Append the grid canvas to the container
+    container.appendChild(canvas);
+}
+
+// Event listener for clicking the "Add Grid" button
+$('#addGridButton').click(function(event) {
+    event.preventDefault(); // Prevent default form submission behavior
+
+    addGrid(); // Add the grid overlay on the generated image
+
+    return false; // Prevent further propagation
+});
+
+// Обработчик изменения толщины контура
+$('#contourThreshold').on('input', function() {
+    var threshold = $(this).val(); // Получаем значение ползунка
+    // Обновляем изображение с контуром с новой толщиной
+    updateContours(threshold);
+})
+
+// Функция для обновления изображения с контуром
+function updateContours(on1) {
+    ConImg(parseInt(on1));
+}
+
+</script>
