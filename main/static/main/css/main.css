@@ -476,7 +476,7 @@ opacity: 0;
 #about{
 	background-color: #F5F5F5;
 	padding: 100px 0 100px 0;
-	height: 1750px;
+	height: 2300px;
 }
 #class {
 	padding: 100px 0 50px 0;
@@ -836,4 +836,64 @@ margin-left: 445px;
         }
 input[type="range"] {
   accent-color: #e0318e;
+}
+    #getImageButton,
+    #blurButton,
+    #ConButton,
+    #generatePaletteButton,
+    #addGridButton,
+    #toggleDrawingModeButton,
+    #drawingSettings,
+    #contourThresholdLabel,
+    #contourThreshold,
+    #paletteContainerName,
+    #removeLastLineButton {
+        display: none;
+    }
+    :root {
+  --canvas-size: 450px; /* Изначальный размер холста */
+}
+
+#resultCanvas {
+  display: block;
+  margin: 40px auto;
+  border-radius: 20px;
+  filter: drop-shadow(2px 4px 6px black);
+  width: var(--canvas-size); /* Используем переменную для размера холста */
+  height: var(--canvas-size); /* Используем переменную для размера холста */
+}
+.palette-color {
+    width: 50px;
+    height: 50px;
+    margin-right: 5px;
+    border-radius: 10px;
+    transition: background-color 0.3s ease; /* Add transition for smooth effect */
+}
+
+.palette-color.clicked {
+    animation: clickAnimation 0.3s ease;
+}
+
+@keyframes clickAnimation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+.palette-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.palette-color {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #000;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.toggle-palette-label {
+    cursor: pointer;
 }

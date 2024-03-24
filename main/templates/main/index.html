@@ -26,7 +26,6 @@
           <li><a class="smoothscroll" href="#header">Шапка</a></li>
           <li><a class="smoothscroll" href="#about">Генерация</a></li>
           <li><a class="smoothscroll" href="#model">Предсказание</a></li>
-<!--          <li><a class="smoothscroll" href="#class">3 этаж</a></li>-->
         </ul>
       </nav>
     </div>
@@ -68,29 +67,40 @@
 <section id="about">
     <div class="container">
         <div>
-             <b><label style="font-size: 24px; margin: auto 10px; pa" for="textInput">Введите текст запроса:</label><b>
+            <b><label style="font-size: 24px; margin: auto 10px; pa" for="textInput">Введите текст запроса:</label></b>
             <textarea type="text" id="textInput" name="textInput" rows="5" style="width: 100%; border-radius: 20px; padding: 15px; resize:none;"></textarea>
             <button style="width: 100%; font-size: 18px" id="getImageButton">Сгенерировать изображение</button>
             <form method="post">
+
                 <button type="button" style="width: 100%; font-size: 18px" id="generateButton"> Подсказка (добавляет 3 слова для генерации необычного рисунка) </button>
-                <button style="width: 100%; font-size: 18px" id="addGridButton">Добавить сетку для построения</button>
+                        <!-- Отображение сгенерированного изображения -->
+                               <a id="loading" style="display: none; font-size: 18px ">Загрузка...</a>
+        <div id="resultContainer" style="display: flex; justify-content: center; margin-top: 40px;filter: drop-shadow(2px 4px 6px black);"></div>
+
+                <button style="width: 100%; font-size: 18px; margin-top: 20px" id="addGridButton">Добавить сетку для построения</button>
             </form>
             <button style="width: 100%; margin-top: -5px; font-size: 18px" id="generatePaletteButton">Выделить основные цвета</button>
-            <button style="width: 100%; font-size: 18px " id="blurButton">Создать контрастную чб версию</button>
             <button style="width: 100%;  margin-bottom: 5px; font-size: 18px" id="ConButton">Выделить контуры</button>
-                        <!-- Добавляем ползунки для настройки контуров -->
-                <label style="font-size: 18px; margin-left: 5px;" for="contourThreshold" id="contourThresholdLabel">Количество контуров:</label>
-                <input type="range" min="1" max="100" value="1" class="slider" id="contourThreshold" style="width: 100%; color: pink">
-            <a id="loading" style="display: none; font-size: 18px ">Загрузка...</a>
+            <!-- Добавляем ползунки для настройки контуров -->
+
         </div>
+
+        <canvas id="gridCanvas" style="justify-content: center; display: none; margin: 0px auto; position: relative;"></canvas>
+        <label style="font-size: 18px; margin-left: 5px;" for="paletteContainer" id="paletteContainerName">Палитра для рисования</label>
         <div style="justify-content: center; display: flex; margin-top: 20px;" id="paletteContainer"></div>
-        <!-- Отображение сгенерированного изображения -->
-        <div id="resultContainer" style="display: flex; justify-content: center; margin-top: 40px;filter: drop-shadow(2px 4px 6px black);"></div>
-        <canvas id="gridCanvas" style="justify-content: center; display: flex; margin: 0px auto; position: relative;"></canvas>
-        <canvas id="resultCanvas" width="450" height="450" style="display: block; margin: 40px auto; border-radius: 20px; filter: drop-shadow(2px 4px 6px black);"></canvas>
+        <label style="font-size: 18px; margin-left: 5px;" for="contourThreshold" id="contourThresholdLabel">Количество контуров:</label>
+        <input type="range" min="1" max="100" value="1" class="slider" id="contourThreshold" style="width: 100%; color: pink">
+        <button style="width: 100%; font-size: 18px; margin-top: 10px;" id="toggleDrawingModeButton">Включить режим рисования</button>
+        <div id="drawingSettings">
+        <label style="margin-top: 25px"  id="lineWidthRangeName" for="lineWidthRange">Выберите размер кисти:</label>
+        <input style="margin-top: 20px; width: 100%" type="range" id="lineWidthRange" min="1" max="30" value="5">
+<!--        <button id="removeLastLineButton">Убрать последнюю линию</button>-->
+        <label style="margin-top: 20px" id="canvasSizeSliderName" for="canvasSizeSlider">Выберите размер холста:</label>
+        <input style="margin-top: 25px; width: 100%" type="range" id="canvasSizeSlider" min="300" max="900" value="450" step="10">
+        </div>
+        <canvas id="resultCanvas" style="display: block; margin: 40px auto; border-radius: 20px; filter: drop-shadow(2px 4px 6px black);"></canvas>
     </div>
 </section>
-
 <!-- model Section -->
 <section id="model">
   <div content="model"></div>
@@ -289,10 +299,17 @@ function displayImage() {
     query({"inputs": q}).then(function(response) {
         var imageUrl = response;
 
+        // Удаляем старый элемент img, если он уже существует
+        $('#generatedImg').remove();
+
         // Create image element and add it to the page
         var imgElement = document.createElement('img');
         imgElement.setAttribute('src', URL.createObjectURL(imageUrl));
         $('#loading').hide();
+
+    // Показываем все остальные кнопки после загрузки изображения и скрытия элемента загрузки
+    $('#blurButton, #ConButton, #generatePaletteButton, #addGridButton, #toggleDrawingModeButton, #contourThresholdLabel, #contourThreshold, #removeLastLineButton').show();
+
         imgElement.style.width = "450px";
         imgElement.style.borderRadius = "20px";
         imgElement.setAttribute('id', 'generatedImg');
@@ -304,12 +321,11 @@ function displayImage() {
     });
 }
 
-
 $('#ConButton').click(function() {
     ConImg();
 });
 
-function ConImg(count = 60) {
+function ConImg(count = 1) {
 console.log('puk:' + count);
     var img = document.getElementById('generatedImg');
     var src = cv.imread(img); // Read image from img tag
@@ -343,21 +359,15 @@ function blurImg() {
     document.getElementById("generatedImg").style.filter = "grayscale(100%) invert(0%) contrast(200%) blur(1px)";
 }
 
-// Event listener for clicking the "Get Image" button
-$('#getImageButton').click(function() {
-    displayImage();
-});
 
 // Event listener for clicking the "Blur" button
 $('#blurButton').click(function() {
     blurImg();
 });
 
-// Event listener for clicking the "Generate" button
-$(document).ready(function(){
-    $("#generateButton").click(function(){
-        var itemsList = [
-                    "apple", "cat", "George Washington", "rainbow", "pizza", "Mars", "coffee", "elephant", "football", "piano",
+// Event listener для нажатия кнопки подсказки
+$('#generateButton').click(function() {
+    var itemsList = ["apple", "cat", "George Washington", "rainbow", "pizza", "Mars", "coffee", "elephant", "football", "piano",
                     "star", "Vincenzo Gemito", "butterfly", "guitar", "Shakespeare", "wolf", "waterfall", "magnolia", "basketball",
                     "bird", "bear", "Sherlock Holmes", "banana", "starfish", "cosmos", "bear", "Mona Lisa", "painting",
                     "turtle", "book", "Font of Time", "sand", "lightning", "lion", "Picasso", "vodka", "dolphin", "computer",
@@ -378,16 +388,28 @@ $(document).ready(function(){
                     "chair", "sound", "bird", "mushroom", "stone", "pigeon", "king", "pear", "computer", "lily", "university", "pearl", "friendship", "jeep", "smartphone", "cocktail", "tulip", "perfection", "starfall",
                     "carnation", "doggie", "robot", "beauty", "hockey", "planet", "T-shirt", "second", "word", "bus",
                     "canoe", "pillow", "keyboard", "smartphone", "kettle", "TV", "orange", "helicopter", "tractor", "spider",
-                    "card", "pizza", "candy", "pie", "schoolboy", "mom", "dad", "pool", "candy"
-                ];
-        var randomItems = [];
-        for (var i = 0; i < 3; i++) {
-            var randomIndex = Math.floor(Math.random() * itemsList.length);
-            randomItems.push(itemsList[randomIndex]);
-        }
-        var itemsText = randomItems.join('\n');
-        $("#textInput").val(itemsText);
-    });
+                    "card", "pizza", "candy", "pie", "schoolboy", "mom", "dad", "pool", "candy"];
+    var randomItems = [];
+    for (var i = 0; i < 3; i++) {
+        var randomIndex = Math.floor(Math.random() * itemsList.length);
+        randomItems.push(itemsList[randomIndex]);
+    }
+    var itemsText = randomItems.join('\n');
+    $("#textInput").val(itemsText); // Устанавливаем сгенерированный текст в поле ввода
+    checkInput(); // Проверяем наличие текста в поле ввода
+});
+var paletteVisible = false; // Флаг для отслеживания видимости палитры
+
+$('#generatePaletteButton').click(function() {
+    if (!paletteVisible) {
+        addPalette();
+        $('#paletteContainerName').show(); // Показываем лейбл
+        paletteVisible = true; // Устанавливаем флаг видимости палитры
+    } else {
+        $('#paletteContainer').empty(); // Очищаем палитру
+        $('#paletteContainerName').hide(); // Скрываем лейбл
+        paletteVisible = false; // Устанавливаем флаг видимости палитры
+    }
 });
 
 function addPalette() {
@@ -401,11 +423,11 @@ function addPalette() {
     var data = imageData.data;
 
     var pixelCount = canvas.width * canvas.height;
-    var colorCount = 5; // Number of colors in the palette
+    var colorCount = 5; // Количество цветов в палитре
     var pixelArray = [];
     var colorMap = {};
 
-    // Count occurrence of each color
+    // Подсчитываем количество встречающихся цветов
     for (var i = 0; i < pixelCount; i++) {
         var offset = i * 4;
         var color = [data[offset], data[offset + 1], data[offset + 2]];
@@ -416,22 +438,22 @@ function addPalette() {
         colorMap[color]++;
     }
 
-    // Sort colors by occurrence
+    // Сортируем цвета по частоте встречаемости
     var sortedColors = Object.keys(colorMap).sort(function(a, b) {
         return colorMap[b] - colorMap[a];
     });
 
-    // Get the top N colors
+    // Получаем топ N цветов
     var palette = [];
     for (var j = 0; j < sortedColors.length && palette.length < colorCount; j++) {
         var color = sortedColors[j].split(',').map(function(item) {
             return parseInt(item);
         });
 
-        // Check if the color is diverse enough from existing ones
+        // Проверяем, достаточно ли разнообразен цвет от уже выбранных
         var isDiverse = true;
         for (var k = 0; k < palette.length; k++) {
-            if (getColorDistance(color, palette[k]) < 100) { // Adjust the threshold as needed
+            if (getColorDistance(color, palette[k]) < 50) { // Подстройте порог по необходимости
                 isDiverse = false;
                 break;
             }
@@ -441,21 +463,28 @@ function addPalette() {
         }
     }
 
-    // Display the palette on the page
+    // Отображаем палитру на странице
     var paletteContainer = document.getElementById('paletteContainer');
     paletteContainer.innerHTML = '';
     for (var l = 0; l < palette.length; l++) {
         var colorDiv = document.createElement('div');
+        colorDiv.className = 'palette-color'; // Добавляем класс для стилизации
         colorDiv.style.backgroundColor = 'rgb(' + palette[l].join(',') + ')';
-        colorDiv.style.width = '50px';
-        colorDiv.style.height = '50px';
-        colorDiv.style.marginRight = '5px';
-        colorDiv.style.borderRadius = '10px';
+        colorDiv.setAttribute('data-color-index', l); // Устанавливаем атрибут данных для хранения индекса цвета
         paletteContainer.appendChild(colorDiv);
     }
 }
 
-// Function to calculate distance between two colors
+// Функция для имитации клика по кнопке
+function simulateButtonClick(colorIndex) {
+    var button = document.createElement('button');
+    button.style.display = 'none'; // Скрываем кнопку
+    document.body.appendChild(button);
+    button.click();
+    document.body.removeChild(button);
+}
+
+// Функция для вычисления расстояния между двумя цветами
 function getColorDistance(color1, color2) {
     var rDiff = color1[0] - color2[0];
     var gDiff = color1[1] - color2[1];
@@ -463,15 +492,21 @@ function getColorDistance(color1, color2) {
     return Math.sqrt(rDiff * rDiff + gDiff * gDiff + bDiff * bDiff);
 }
 
-$('#generatePaletteButton').click(function() {
-    addPalette();
+// Example button click handler
+$(document).on('click', '.palette-color', function() {
+    var colorIndex = $(this).attr('data-color-index');
+    console.log('Color Index Clicked:', colorIndex);
+    $(this).addClass('clicked'); // Add a class for clicked effect
 });
+
+// Flag to track if the grid is currently displayed
+var isGridDisplayed = false;
 
 // Function to add a grid on top of the image
 function addGrid() {
     var img = document.getElementById('generatedImg');
     var container = document.getElementById('resultContainer');
-    var canvas = document.getElementById('gridCanvas');
+    var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
 
     // Set canvas size to match the image size
@@ -509,17 +544,48 @@ function addGrid() {
     }
 
     // Append the grid canvas to the container
+    canvas.setAttribute('id', 'gridCanvas');
     container.appendChild(canvas);
+
+    // Set flag to true
+    isGridDisplayed = true;
+
+    // Change button text to "Remove Grid"
+    $('#addGridButton').text('Убрать сетку');
+}
+
+// Function to remove the grid
+function removeGrid() {
+    var gridCanvas = document.getElementById('gridCanvas');
+    if (gridCanvas) {
+        gridCanvas.remove();
+    }
+
+    // Set flag to false
+    isGridDisplayed = false;
+
+    // Change button text to "Add Grid"
+    $('#addGridButton').text('Добавить сетку');
 }
 
 // Event listener for clicking the "Add Grid" button
 $('#addGridButton').click(function(event) {
     event.preventDefault(); // Prevent default form submission behavior
 
-    addGrid(); // Add the grid overlay on the generated image
+    if (!isGridDisplayed) {
+        addGrid(); // Add the grid overlay on the generated image
+    } else {
+        removeGrid(); // Remove the grid overlay
+    }
 
     return false; // Prevent further propagation
 });
+
+// Wait for the image to load completely before adding the grid
+$('#generatedImg').on('load', function() {
+    addGrid(); // Add the grid overlay on the generated image
+});
+
 
 // Обработчик изменения толщины контура
 $('#contourThreshold').on('input', function() {
@@ -531,6 +597,210 @@ $('#contourThreshold').on('input', function() {
 // Функция для обновления изображения с контуром
 function updateContours(on1) {
     ConImg(parseInt(on1));
+}
+let isDrawingMode = false;
+let isLineMode = true; // Переменная для отслеживания выбранного режима
+let isMouseDown = false; // Переменная для отслеживания состояния нажатия кнопки мыши
+let lastX = 0;
+let lastY = 0;
+let currentColor = 'blue'; // Изначальный цвет для рисования
+let lineWidth = 5; // Изначальная толщина линии
+
+// Event listener для переключения режима рисования
+$('#toggleDrawingModeButton').click(function() {
+    toggleDrawingMode(); // Вызов функции переключения режима рисования
+});
+
+// Event listener для переключения режима (линия или точка)
+$('#toggleLineModeButton').click(function() {
+    isLineMode = true; // Установка режима линии
+});
+
+$('#toggleDotModeButton').click(function() {
+    isLineMode = false; // Установка режима точки
+});
+
+// Функция для переключения режима рисования
+function toggleDrawingMode() {
+    isDrawingMode = !isDrawingMode; // Инвертирование состояния режима рисования
+
+    const button = document.getElementById('toggleDrawingModeButton');
+
+    // Изменение текста на кнопке в зависимости от состояния режима рисования
+    if (isDrawingMode) {
+        button.textContent = 'Выйти из режима рисования';
+        startDrawingOnGeneratedImage(); // Если включен режим рисования, начать рисовать сразу
+    } else {
+        button.textContent = 'Включить режим рисования';
+        clearCanvas(); // Очистка холста при выходе из режима рисования
+    }
+}
+
+// Функция для начала рисования на сгенерированном изображении
+function startDrawingOnGeneratedImage() {
+    const canvas = document.getElementById('resultCanvas');
+    const ctx = canvas.getContext('2d');
+    let isMouseDown = false; // Флаг для отслеживания нажатия кнопки мыши
+    let lastX = 0;
+    let lastY = 0;
+
+    // Функция рисования на изображении
+    function drawOnGeneratedImage(e) {
+        if (!isDrawingMode || !isMouseDown) return; // Проверка, включен ли режим рисования и нажата ли кнопка мыши
+
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width; // Коэффициент масштабирования по оси X
+        const scaleY = canvas.height / rect.height; // Коэффициент масштабирования по оси Y
+        const x = (e.clientX - rect.left) * scaleX; // Пересчитываем координаты X
+        const y = (e.clientY - rect.top) * scaleY; // Пересчитываем координаты Y
+
+        ctx.strokeStyle = currentColor; // Установка цвета для рисования
+        ctx.lineWidth = lineWidth; // Установка толщины линии
+
+        if (isLineMode) {
+            // Рисование линии от предыдущей точки до текущей точки
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            lastX = x;
+            lastY = y;
+        } else {
+            // Рисование точки
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Определение событий мыши для рисования
+    canvas.addEventListener('mousedown', function(e) {
+        isMouseDown = true; // Установка флага нажатия кнопки мыши
+        const rect = canvas.getBoundingClientRect();
+        lastX = (e.clientX - rect.left) * (canvas.width / rect.width); // Пересчитываем координаты X
+        lastY = (e.clientY - rect.top) * (canvas.height / rect.height); // Пересчитываем координаты Y
+        drawOnGeneratedImage(e);
+    });
+
+    canvas.addEventListener('mouseup', function() {
+        isMouseDown = false; // Сброс флага нажатия кнопки мыши
+    });
+
+    canvas.addEventListener('mousemove', function(e) {
+        drawOnGeneratedImage(e);
+    });
+}
+
+
+// Event listener для выбора цвета из палитры и изменения текущего цвета для рисования
+document.getElementById('paletteContainer').addEventListener('click', function(event) {
+    if (event.target.tagName === 'DIV') {
+        currentColor = event.target.style.backgroundColor;
+    }
+});
+
+// Event listener для изменения толщины линии с помощью ползунка
+document.getElementById('lineWidthRange').addEventListener('input', function() {
+    lineWidth = parseInt(this.value);
+});
+// Массив для хранения истории нарисованных линий
+const lineHistory = [];
+
+// Получаем ссылку на холст и его контекст рисования
+const canvas = document.getElementById('resultCanvas');
+const ctx = canvas.getContext('2d');
+
+// Функция для начала рисования на холсте
+function startDrawingOnCanvas() {
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    // Обработчик события нажатия кнопки мыши
+    canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    });
+
+    // Обработчик события перемещения мыши
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isDrawing) return; // Не продолжаем, если кнопка мыши не нажата
+
+        ctx.strokeStyle = currentColor; // Устанавливаем цвет линии
+        ctx.lineWidth = lineWidth; // Устанавливаем толщину линии
+        ctx.lineCap = 'round'; // Устанавливаем форму концов линии
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY); // Перемещаемся к предыдущей точке
+        ctx.lineTo(e.offsetX, e.offsetY); // Рисуем линию до текущей точки
+        ctx.stroke();
+
+        // Обновляем последние координаты
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    });
+
+    // Обработчик события отпускания кнопки мыши
+    canvas.addEventListener('mouseup', () => {
+        isDrawing = false;
+        // Добавляем текущую линию в историю
+        lineHistory.push({ startX: lastX, startY: lastY, endX: lastX, endY: lastY });
+    });
+
+    // Обработчик события убрать последнюю линию
+    document.getElementById('removeLastLineButton').addEventListener('click', () => {
+        removeLastLine();
+    });
+}
+// Функция для проверки наличия текста в поле ввода или наличия подсказки
+function checkInput() {
+    const inputText = $('#textInput').val().trim(); // Получаем текст из поля ввода и удаляем начальные и конечные пробелы
+    const hintButtonText = $('#generateButton').text().trim(); // Получаем текст с кнопки подсказки и удаляем начальные и конечные пробелы
+
+    // Если введенный текст или текст подсказки присутствует, показываем кнопку для генерации изображения
+    if (inputText || hintButtonText) {
+        $('#getImageButton').show();
+    } else {
+        $('#getImageButton').hide(); // В противном случае скрываем кнопку для генерации изображения
+    }
+}
+
+// Event listener для изменения текста в поле ввода
+$('#textInput').on('input', function() {
+    checkInput(); // Вызываем функцию проверки
+});
+
+// Event listener для нажатия кнопки подсказки
+$('#generateButton').click(function() {
+    checkInput(); // Вызываем функцию проверки
+});
+
+// Event listener для нажатия кнопки для генерации изображения
+$('#getImageButton').click(function() {
+    displayImage(); // Отображаем изображение
+});
+
+// Обработчик события изменения положения ползунка
+document.getElementById('canvasSizeSlider').addEventListener('input', function() {
+    var newSize = this.value + 'px'; // Получаем новый размер из значения ползунка
+    document.documentElement.style.setProperty('--canvas-size', newSize); // Изменяем значение переменной CSS для размера холста
+});
+// Function to toggle drawing mode and display sliders
+function toggleDrawingMode() {
+    isDrawingMode = !isDrawingMode; // Toggle drawing mode
+
+    const button = document.getElementById('toggleDrawingModeButton');
+    const drawingSettings = document.getElementById('drawingSettings');
+
+    if (isDrawingMode) {
+        button.textContent = 'Выйти из режима рисования';
+        startDrawingOnGeneratedImage(); // Start drawing on generated image
+        drawingSettings.style.display = 'block'; // Show drawing settings
+    } else {
+        button.textContent = 'Включить режим рисования';
+         drawingSettings.style.display = 'none'; // Hide drawing settings;
+        clearCanvas() // Clear canvas when exiting drawing mode
+
+    }
 }
 
 </script>
